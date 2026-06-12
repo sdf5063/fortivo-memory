@@ -319,3 +319,11 @@ Backup: `_backups/fortivo_crm_2026-04-03_uxfix.html`
 - `changeRateVersion`/`_recomputeAllDayTotals` are transactional (rollback on failure)
 - Save button shows orange "Save •" when unsaved; sticky error toasts with Retry
 - deploy.sh archives index.html to `.backups/` (keep 20) and aborts on build failure
+
+## T&M Tracker — Phases 2-4 shipped (2026-06-12, v3.36)
+- **Phase 4 (rates, the crucial one):** rate update = 2 steps: (1) browser Rate Editor → Publish to Production (reaches all trackers in seconds via runtime hydration from /api/rates-current); (2) double-click `03_Rate Sheets/Update Rate Sheets.command` → tests → deploy → client Word/PDF regenerated from `_Template/` master → Finder opens output. Live blob activated + loop verified end to end.
+- Client doc format master: `03_Rate Sheets/_Template/Fortivo T&M Rate Sheet_TEMPLATE.docx` (edit wording/layout HERE). Generator finds tables by header signature; year-rollover automatic; meta.json + .backups in each Version folder.
+- **Published rate versions are immutable** (publish.js rejects modify/remove with 409 — duplicate to new version instead).
+- Phase 2: migrateProject() validates every load; _extra fields round-trip (older client can't strip newer data); verifyDayTotals drift toast; day PDFs stamp locked rate version; totals.grandTotalExclAdmin added.
+- Phase 3: crew carry-forward to new days; device roster for name suggestions; scoped UNDO on day-delete/rate-change; offline draft outbox + auto-flush; day-add popover (any date, auto-resequence).
+- Tests now 34 assertions; still gate every deploy. Remaining: Phase 3 leftovers (hour preset chips, job picker search, iPhone job validation), Phase 5 (dry-run diff, rename detection, TEMPLATE_CONTRACT.md, Excel updater), Phase 6 (multi-PM locks, identity, invoice freeze, QBO CSV).
