@@ -2,7 +2,7 @@
 
 ## Fortivo Team
 - **Scott Futrovsky** — Owner/Operator, primary Claude user
-  - sfutrovsky@gmail.com (personal / GitHub / Netlify)
+  - sfutrovsky@fortivo.com (personal / GitHub / Netlify)
   - admin@fortivo.com (company)
 
 ## Key Clients / Contacts
