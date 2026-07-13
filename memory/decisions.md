@@ -333,3 +333,45 @@ Backup: `_backups/fortivo_crm_2026-04-03_uxfix.html`
 - **Phase 6:** identity-lite (one-time device-user prompt; attribution everywhere + 50-entry changeLog in project meta); optimistic concurrency on save (conflict copy default / overwrite / abort); advisory `.lock.json` (10-min refresh, 4h stale) warns on simultaneous open; **invoice freeze** — Export Project Report snapshots totals to `meta.invoices[]`, drift banners on summary; **Export Invoice Data (CSV)** in save menu (QBO-ready); Needs-invoice/Invoiced badges on setup preview; drafts carry user/deviceId/jobId.
 - Phase 3 leftovers: 8/10/12 hr chips, searchable recency-first job picker, job-number validation, affordance captions.
 - Deferred (revisit when needed): per-job localStorage buffers, draft PATCH-assignment, /api/jobs phone list, Excel auto-updater, key rotation (FALLBACK_KEY still in functions).
+
+## Fortivo Chief of Staff — Phase 1 (2026-07-13)
+Proactive assistant system so Scott stops missing deadlines/follow-ups as the company grows.
+Architecture: (1) commitment layer = Ops_Tasks SP list, (2) heartbeat = Morning Brief Vercel cron,
+(3) capture = tasks app quick-add (voice capture = Phase 3), (4) lifecycle rules (Phase 2).
+CRM is dormant — brief/app read it gracefully but skip it when empty.
+
+### Ops_Tasks SP List (created 2026-07-13)
+- Entity: `SP.Data.Ops_x005f_TasksListItem`
+- Fields: Title, Details (Note), Job_Number (Text), Due_Date, Snooze_Until, Completed_Date (DateTime),
+  Priority (High/Normal/Low), Status (Open/Done), Source (Manual/Voice/Rule/Brief),
+  Category (Follow-Up/Warehouse/Post-Job/Office/Field/Growth), Recur_Days (Number)
+- Snooze = Status stays Open + Snooze_Until in future; recurring tasks spawn next occurrence on complete
+
+### fortivo_tasks.html (Tasks app)
+- Master: `Fortivo Operations - Site Assets/fortivo_tasks.html` → deployed `SitePages/fortivo_tasks.aspx`
+- Views: Today (overdue/due today/high-no-date/snoozed), Upcoming (7d by day), All Open, Done
+- Quick-add bar with smart parsing: today/tmrw/mon–sun/next week → Due_Date, `\d{2}-\d{2}-\d{5}` → Job_Number, `!` → High
+- Complete w/ Recur_Days>0 auto-creates next occurrence (Source=Rule); snooze +1d/+3d/+1w
+- Job # datalist from Jobs_Master (Open/In Progress/On Hold)
+- "Tasks" nav link added to all 4 existing apps (backups: `_backups/*_2026-07-13_tasksnav.html`)
+
+### Morning Brief (fortivo-voice-email project)
+- `api/morning-brief.js` — Vercel cron `30 10 * * *` (6:30am EDT / 5:30am EST) + scan-vendors keeps 12:00
+  (Hobby plan limit: max 2 daily crons)
+- Pulls via Graph: Ops_Tasks, Jobs_Master, Invoices, Field_Reports, Equipment_Inventory, CRM_Deals (graceful), /me/calendarview
+- Rules: overdue/today/upcoming tasks; overdue invoices (Sent+past Due_Date or Status=Overdue); missing DFRs
+  yesterday for In Progress jobs (Tue–Sat only); equipment Deployed on inactive jobs ("stranded"); equipment
+  deployed 14+ days; stale deals 14+ days (only if pipeline non-empty)
+- Narrative: Claude Haiku (CLAUDE_TEXT_MODEL env) writes "Top 3 today" + sections; plain-template fallback
+- Emails BRIEF_TO (default sfutrovsky@fortivo.com) via Graph sendMail; subject shows overdue count
+- Manual/dry-run: `/api/morning-brief?key=API_KEY&dryrun=1` returns HTML without sending
+
+### Voice Email Auth Fix (2026-07-13) — root cause + permanent fix
+- BROKE because: refresh token stored as static GRAPH_REFRESH_TOKEN env var at March deploy; MS refresh
+  tokens live ~90 days; expired mid-June; /tmp rotations lost on cold start. iOS shortcut surfaced
+  "ERROR: auth expired" (compose-email.js needsReauth path). scan-vendors cron also silently down since.
+- FIX: new `lib/token-store.js` — tokens persist to Vercel Blob (AES-256-GCM encrypted, key=sha256(GRAPH_CLIENT_SECRET)),
+  rotated on EVERY refresh; fallbacks /tmp → legacy env var. Daily cron usage keeps token perpetually fresh.
+- Added Calendars.Read scope (for brief); re-auth required once via /api/auth/login
+- `FIX-AUTH.command` in project root: vercel login → blob store connect → deploy → MS sign-in → verify
+- Vercel CLI was logged out on the Mac; Scott must run FIX-AUTH.command to complete deployment

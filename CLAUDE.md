@@ -10,6 +10,13 @@ At the **start of every session**, read all files in the `memory/` directory:
 These files are the shared knowledge base across all Claude sessions (Code and Cowork).
 **Do not ask questions that are already answered in these files.**
 
+**GitHub repo:** https://github.com/sdf5063/fortivo-memory
+Raw URLs for Cowork access:
+- `https://raw.githubusercontent.com/sdf5063/fortivo-memory/main/memory/user.md`
+- `https://raw.githubusercontent.com/sdf5063/fortivo-memory/main/memory/preferences.md`
+- `https://raw.githubusercontent.com/sdf5063/fortivo-memory/main/memory/decisions.md`
+- `https://raw.githubusercontent.com/sdf5063/fortivo-memory/main/memory/people.md`
+
 ## Updating Memory
 At the **end of a session** (or when significant new information comes up), update the relevant memory file(s):
 - New architecture decisions → `decisions.md`
@@ -19,6 +26,11 @@ At the **end of a session** (or when significant new information comes up), upda
 
 Keep entries concise. Use bullet points. Include dates for time-sensitive decisions.
 Do not duplicate information across files — each file has a clear purpose.
+
+After updating local memory files, push changes to GitHub:
+```bash
+cd /tmp/fortivo-memory && cp ~/Library/CloudStorage/OneDrive-FortivoPropertyServices/memory/*.md memory/ && cp ~/Library/CloudStorage/OneDrive-FortivoPropertyServices/CLAUDE.md . && git add -A && git commit -m "Update memory" && git push
+```
 
 ## Key Project Paths
 - **This directory:** OneDrive-synced Fortivo company documents
