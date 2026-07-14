@@ -397,3 +397,16 @@ CRM is dormant — brief/app read it gracefully but skip it when empty.
   voice Tier-1 upgrades until that completes.
 - **Strategic note:** Microsoft is squeezing custom script hosting. Consider migrating the 4 SPAs off
   SitePages (e.g., Netlify + Graph/MSAL auth like the CRM calendar sync already uses) — discuss with Scott.
+
+## CORRECTION to the 2026-07-13 outage recovery — _v2 pages are TEST BUILDS (do NOT reuse)
+- The SitePages `*_v2.aspx` copies (Apr 11) are NOT backups — they are April sandbox builds hard-wired to
+  `*_v2` TEST LISTS (Jobs_Master_v2, Invoices_v2, CRM_Accounts_v2, Equipment_Inventory_v2, QB_AR_Aging_v2…).
+  Promoting fortivo_app_v2 to the canonical URL made the Job Manager display the 9-item test list → looked
+  like "all new jobs disappeared." Production Jobs_Master was verified intact the whole time (79 items).
+- Swap was fully reversed same night: _v2 builds returned to _v2 names; current (save-flagged) builds back
+  on canonical URLs awaiting redeploy-after-propagation via the canary-first scheduled task.
+- Save-flagged files do NOT self-heal when propagation completes — they must be re-copied fresh.
+- Interim data access that always works (no custom script involved): native list UI
+  `/sites/FortivoOperations/Lists/Jobs_Master/AllItems.aspx`
+- LESSON: before promoting any "backup" page, grep its source for list bindings (search "_v2" /
+  "Jobs_Master") — verify it targets production lists.
