@@ -435,3 +435,25 @@ CRM is dormant — brief/app read it gracefully but skip it when empty.
   (tile + existing dashboard both rendering). Rollback: _backups/Fortivo_Dashboard_2026-07-13_todaytile.html.
 - Tasks app verified end-to-end in production (add w/ smart parse → SP row → complete → delete).
 - Relay deploy (brief+rules+voice) blocked ONLY on Scott running FIX-AUTH.command.
+
+## QuickBooks Project Button (2026-07-14)
+- **Job Manager**: green "+ QuickBooks" button in job-actions row (flips to "✓ In QuickBooks" once linked).
+  App changes: jobFromSP maps QB_Customer_Id/QB_Project_Id/QB_Project_Name; App.qbCreateProject() POSTs
+  {jobNumber} to relay; DB.update persists linkage locally; deployed via canary + delete+Files/Add.
+  Backup: _backups/fortivo_app_2026-07-14_qbbutton.html
+- **Relay**: api/qbo-project.js (+ lib/qbo.js) — GET ?action=connect (OAuth, signed-state), GET callback,
+  GET ?action=status, POST {jobNumber} → Graph-reads Jobs_Master (+CRM contact email via Client_Contact_Id),
+  find/create QBO customer (exact→fuzzy→create, mirrors fv_qb.py), create project (v3 /project entity,
+  sub-customer fallback), write QB ids back to Jobs_Master. Idempotent at every layer.
+- **QBO tokens**: SEPARATE OAuth grant from fv_qb.py (Intuit rotates refresh tokens — two consumers of one
+  grant would fight). Encrypted named blob store 'qbo' (token-store saveNamedTokens/loadNamedTokens),
+  self-rotating like Graph. Env: QBO_CLIENT_ID/SECRET/REALM_ID/REDIRECT_URI (from ~/.fortivo/qb_credentials.json).
+- **Function limit fix**: auth trio consolidated into api/auth/[action].js (handlers in lib/auth-handlers/);
+  debug.js + debug-coi.js parked in _disabled-functions/ (restore on Vercel Pro). Now 11/12 functions.
+- Jobs_Master new columns: QB_Customer_Id, QB_Project_Id, QB_Project_Name (Text).
+- Intuit app: "Fortivo SP Connector" (AppID 10874f7c-7aa1-4091-b824-6334fc5b4c03, workspace "Sample Workspace").
+- **PENDING Scott (2 clicks)**: add redirect URI https://fortivo-voice-email.vercel.app/api/qbo-project in
+  app Settings → Redirect URIs (his Intuit session expired mid-attempt), then visit
+  /api/qbo-project?action=connect&key=API_KEY and approve. Ops_Task created as reminder.
+- First real Morning Brief fired 2026-07-14 6:39am ET: rules engine created 19 tasks incl. 6 collections
+  (~$217K overdue AR) and 7 stranded-equipment retrievals. System live.
