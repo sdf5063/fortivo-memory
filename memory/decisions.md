@@ -375,3 +375,25 @@ CRM is dormant — brief/app read it gracefully but skip it when empty.
 - Added Calendars.Read scope (for brief); re-auth required once via /api/auth/login
 - `FIX-AUTH.command` in project root: vercel login → blob store connect → deploy → MS sign-in → verify
 - Vercel CLI was logged out on the Mac; Scott must run FIX-AUTH.command to complete deployment
+
+## SP Custom-Script Outage + Recovery (2026-07-13 evening) — IMPORTANT DEPLOY PLAYBOOK
+- **What happened:** DenyAddAndCustomizePages had auto-reverted (Microsoft ~24h policy). Existing pages
+  KEPT RENDERING (block is stamped at SAVE time, not render time). Deploying (CopyTo overwrite) while
+  blocked/mid-propagation replaced all 4 working app pages with save-flagged copies → "File Not Found"
+  across Job Manager/CRM/Invoicing/Dashboard. Production outage caused by the deploy itself.
+- **Recovery that worked:** `_v2` backup copies in SitePages (saved 2026-04-11, before the block) still
+  rendered. MoveTo (rename) PRESERVES the working flag. Swapped: canonical → *_broken_20260713.aspx,
+  *_v2.aspx → canonical. All 4 apps back (Apr-11 build; zero data impact — data lives in SP lists).
+- **Rules for every future SP deploy:**
+  1. BEFORE deploying, canary-test: CopyTo any small .html → SitePages/fv_test_render.aspx and confirm it
+     renders. If it serves "File Not Found", saves are blocked — DO NOT overwrite production pages.
+  2. If blocked: flip DenyAddAndCustomizePages=1 via admin CSOM (snippet in preferences.md), wait for
+     propagation (can exceed 1–2h), re-run canary until it renders TWICE consecutively, then deploy.
+  3. Keep dated .aspx backup copies IN SitePages (e.g. *_v2.aspx) — they are the only same-URL-scheme
+     restore path (version history was empty; overwrite doesn't populate Recycle Bin).
+- **Pending as of session end:** healer (in SP browser tab) + hourly scheduled task "finish-sitepages-deploy"
+  will upgrade canonicals to current masters + deploy fortivo_tasks.aspx once fresh saves render; then
+  delete *_broken_20260713.aspx + fv_test_render.aspx and disable itself. Apr-11 build lacks May-2 DFR
+  voice Tier-1 upgrades until that completes.
+- **Strategic note:** Microsoft is squeezing custom script hosting. Consider migrating the 4 SPAs off
+  SitePages (e.g., Netlify + Graph/MSAL auth like the CRM calendar sync already uses) — discuss with Scott.
