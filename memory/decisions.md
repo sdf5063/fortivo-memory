@@ -424,3 +424,14 @@ CRM is dormant — brief/app read it gracefully but skip it when empty.
   (26-02-00045, 26-01-00044) and production Jobs_Master binding; Tasks app live at fortivo_tasks.aspx.
 - Canary files cleaned up; hourly scheduled task disabled; *_v2 test pages left untouched at _v2 names.
 - **HARD RULE (Scott): never take the system down. Canary-first before touching any production page.**
+
+## Chief of Staff — Phases 2-4 built + Phase 4 deployed (2026-07-13 late)
+- lib/ops-rules.js rules engine (R1-R4, Rule_Key idempotency incl. Done tasks, 25-cap, dryRun mode),
+  wired into api/morning-brief.js (paginated listItems); test/test-ops-rules.js 52 assertions green.
+- api/tasks.js "Tell Fortivo": POST transcript→Claude→Ops_Tasks tasks (Source=Voice) + spoken reply for
+  Siri; GET ?due=today. SETUP-TELL-FORTIVO-SHORTCUT.md has the iOS shortcut recipes.
+- Rule_Key (Text) column added to Ops_Tasks.
+- Dashboard Today tile deployed to Fortivo_Dashboard.aspx via canary-first delete+Files/Add; verified live
+  (tile + existing dashboard both rendering). Rollback: _backups/Fortivo_Dashboard_2026-07-13_todaytile.html.
+- Tasks app verified end-to-end in production (add w/ smart parse → SP row → complete → delete).
+- Relay deploy (brief+rules+voice) blocked ONLY on Scott running FIX-AUTH.command.
