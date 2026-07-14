@@ -410,3 +410,17 @@ CRM is dormant — brief/app read it gracefully but skip it when empty.
   `/sites/FortivoOperations/Lists/Jobs_Master/AllItems.aspx`
 - LESSON: before promoting any "backup" page, grep its source for list bindings (search "_v2" /
   "Jobs_Master") — verify it targets production lists.
+
+## RESOLVED: 2026-07-13 outage — final working deploy method (Files/Add fresh item)
+- **Root discovery:** the custom-script save-flag is stamped on the FILE ITEM. CopyTo overwrites AND
+  Files/Add overwrites of a poisoned item stay poisoned. A brand-new file item created via
+  `Files/Add` renders cleanly.
+- **THE deploy recipe (used to restore everything, verified live):**
+  1. Fetch master text from SiteAssets (same-origin GET)
+  2. DELETE the target `SitePages/<app>.aspx` (X-HTTP-Method DELETE, IF-MATCH:*)
+  3. POST `/_api/web/GetFolderByServerRelativeUrl('/sites/FortivoOperations/SitePages')/Files/Add(url='<app>.aspx',overwrite=true)` with the HTML as body
+  4. Publish + verify the page renders (check for app marker, absence of "File Not Found")
+- All 5 pages restored on CURRENT builds 2026-07-13 ~21:15 ET; Job Manager verified live w/ newest jobs
+  (26-02-00045, 26-01-00044) and production Jobs_Master binding; Tasks app live at fortivo_tasks.aspx.
+- Canary files cleaned up; hourly scheduled task disabled; *_v2 test pages left untouched at _v2 names.
+- **HARD RULE (Scott): never take the system down. Canary-first before touching any production page.**
